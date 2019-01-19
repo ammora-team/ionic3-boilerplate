@@ -5,10 +5,21 @@
   "author": "Ammora Team",
   "private": true,
   "scripts": {
-    "start": "ionic-app-scripts serve",
+    "commitlint": "commitlint",
     "clean": "ionic-app-scripts clean",
-    "build": "ionic-app-scripts build",
-    "lint": "ionic-app-scripts lint"
+    "clean-all": "npm run clean-cordova && rimraf www/* node_modules/*",
+    "clean-cordova-plugins": "rimraf plugins/*",
+    "clean-cordova-platforms": "rimraf platforms/*",
+    "clean-cordova": "npm-run-all clean-cordova-platforms clean-cordova-plugins",
+    "build": "ionic-app-scripts build --prod",
+    "lint": "ionic-app-scripts lint --bailOnLintError true",
+    "generate-dists": "npm-run-all generate-build-json generate-config-xml",
+    "generate-build-json": "node ./scripts/generate-build-json",
+    "generate-config-xml": "node ./scripts/generate-config-xml",
+    "ionic:build": "ionic-app-scripts build",
+    "postinstall": "node scripts/create-env && npm run generate-dists",
+    "ionic:serve": "ionic-app-scripts serve",
+    "start": "npm run ionic:serve"
   },
   "dependencies": {
     "@angular/common": "6.0.0",
