@@ -1,0 +1,99 @@
+for i in 0 ... ARGV.length
+  if (ARGV[i] === "--env")
+    ENV['ENV_CURRENT'] = ARGV[i+1]
+  end
+end
+
+desc "Clean node_modules/, platforms and plugins/"
+private_lane :prepare do |options|
+  # retorna versao npm instalada
+  npmVersionCurrent=sh("npm --version | tr -d '\n'")
+  npmVersion=ENV["NPM_VERSION"]
+
+  if (npmVersionCurrent != npmVersion)
+    sh("sudo npm install -g n")
+    sh("sudo n " + ENV["NODE_VERSION"])
+    sh("sudo npm install -g npm@" + ENV["NPM_VERSION"])
+  end
+
+  sh("npm install rimraf")
+  if (options[:clean])
+    sh("npm run clean-all")
+  end
+  sh("npm install")
+end
+
+private_lane :run_build do |options|
+  command = ""
+  if (ENV['ENV_CURRENT'])
+    command += "NODE_ENV=" + ENV['ENV_CURRENT'] + " "
+  end
+
+  command += "npx ionic cordova build " + options[:platform]
+
+  if (options[:release])
+    command += " --device --release"
+  end
+
+  # todo usage arg
+
+  if (options[:build_prod])
+    command += " --prod"
+  end
+
+  sh(command)
+end
+
+lane :sync_cert do
+  type = ENV['MATCH_TYPE']
+  readonly = ENV['MATCH_READONLY']
+  password = ENV['FASTLANE_PASSWORD']
+  if (readonly.nil? && (password.nil? || password.empty?))
+    readonly = true
+  end
+  username = ENV['MATCH_USERNAME']
+  if (!username.empty?)
+    match(
+      app_identifier: ENV['APP_IDENTIFIER'],
+      readonly: readonly
+    )
+    uuid = ENV["sigh_" + ENV["APP_IDENTIFIER"] + "_" + type]
+    sh("PROVISION_UUID=" + uuid + " npm run generate-build-json")
+  end
+end
+
+platform :ios do
+  lane :build do |options|
+    prepare(options)
+    username = ENV['MATCH_USERNAME']
+    if (username)
+      sync_cert
+    end
+    # config cocoapods
+    sh("sudo gem install cocoapods")
+    sh("pod repo update")
+    
+    # build platform ios
+    options[:platform]="ios"
+    run_build(options)
+  end
+  lane :release_store do
+    upload_to_app_store(
+      app_identifier: ENV['APP_IDENTIFIER'],
+      skip_metadata: true,
+      skip_screenshots: true
+    )
+  end
+  lane :release do |options|
+    build( release: true, clean: true, build_prod: true )
+    ENV['DELIVER_IPA_PATH'] = "./platforms/build/device/*.ipa"
+    release_store
+  end
+end
+
+platform :android do
+  lane :build do |options|
+    prepare(options)
+    run_build( platform: "android", release: options[:release] )
+  end
+end
