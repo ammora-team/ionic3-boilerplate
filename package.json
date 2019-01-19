@@ -38,8 +38,19 @@
     "zone.js": "0.8.26"
   },
   "devDependencies": {
-    "@ionic/app-scripts": "3.2.1",
-    "typescript": "~2.6.2"
+    "@commitlint/cli": "^6.0.0",
+    "@commitlint/config-conventional": "^6.0.0",
+    "@commitlint/prompt": "^6.0.0",
+    "@ionic/app-scripts": "~3.2.0",
+    "cordova": "8.0.0",
+    "dotenv": "6.1.0",
+    "dotenv-expand": "~4.2.0",
+    "lint-staged": "^8.1.0",
+    "ionic": "~4.1.0",
+    "npm-run-all": "^4.1.2",
+    "rimraf": "^2.6.2",
+    "tslint-angular": "1.1.2",
+    "typescript": "2.7.2"
   },
   "cordova": {
     "plugins": {
