@@ -77,14 +77,48 @@
         <splash height="960" src="resources/ios/splash/Default@2x~iphone.png" width="640" />
         <splash height="480" src="resources/ios/splash/Default~iphone.png" width="320" />
         <splash height="2732" src="resources/ios/splash/Default@2x~universal~anyany.png" width="2732" />
+
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSAppleMusicUsageDescription" >
+            <string>Message permission apple music.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSBluetoothPeripheralUsageDescription" >
+            <string>Message permission bluetooth.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSCalendarsUsageDescription">
+            <string>Message permission calendar.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSContactsUsageDescription">
+            <string>Message permission contacts.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSContactsUsageDescription">
+            <string>Message permission contacts.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSFaceIDUsageDescription">
+            <string>Message permission face id.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSPhotoLibraryUsageDescription">
+            <string>Message permission photo gallery.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSMicrophoneUsageDescription">
+            <string>Message permission microphone.</string>
+        </edit-config>
         <edit-config file="*-Info.plist" mode="ovewrite" target="NSCameraUsageDescription">
-            <string>Mensagem Camera.</string>
+            <string>Message permission camera.</string>
         </edit-config>
         <edit-config file="*-Info.plist" mode="ovewrite" target="NSLocationAlwaysUsageDescription">
-            <string>Mensagem localização.</string>
+            <string>Message permission location.</string>
         </edit-config>
         <edit-config file="*-Info.plist" mode="ovewrite" target="NSLocationWhenInUseUsageDescription">
-            <string>Mensagem localização.</string>
+            <string>Message permission location.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSMotionUsageDescription">
+            <string>Message permission accelerometer.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSRemindersUsageDescription">
+            <string>Message permission reminders.</string>
+        </edit-config>
+        <edit-config file="*-Info.plist" mode="ovewrite" target="NSSpeechRecognitionUsageDescription">
+            <string>Message permission speech recognition.</string>
         </edit-config>
         <edit-config file="*-Info.plist" mode="merge" target="CFBundleLocalizations">
             <array>
