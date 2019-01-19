@@ -64,6 +64,10 @@
     "tslint-angular": "1.1.2",
     "typescript": "2.7.2"
   },
+  "config": {
+    "ionic_webpack": "./config/webpack.config.js",
+    "ionic_copy": "./config/copy.config.js"
+  },
   "cordova": {
     "plugins": {
       "cordova-plugin-whitelist": {},
