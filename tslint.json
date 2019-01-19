@@ -1,11 +1,12 @@
 {
+  "extends": "tslint-angular",
   "rules": {
-    "no-duplicate-variable": true,
-    "no-unused-variable": [
-      true
-    ]
-  },
-  "rulesDirectory": [
-    "node_modules/tslint-eslint-rules/dist/rules"
-  ]
+    "component-class-suffix": [true, "Component", "Page"],
+    "component-selector": [true, "element", ["page", "cmp", "app", "component"], "kebab-case"],
+    "no-non-null-assertion": false,
+    "import-blacklist": [],
+    "no-console": [true, "log", "info"],
+    "no-debugger": true,
+    "no-consecutive-blank-lines": true
+  }
 }
