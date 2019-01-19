@@ -13,7 +13,6 @@ log.txt
 npm-debug.log*
 
 .idea/
-.ionic/
 .sourcemaps/
 .sass-cache/
 .tmp/
@@ -23,13 +22,22 @@ dist/
 node_modules/
 tmp/
 temp/
+hooks/
 platforms/
 plugins/
 plugins/android.json
 plugins/ios.json
-www/
+/www/
 $RECYCLE.BIN/
+resources/icomoon/*
+fastlane/Preview.html
+fastlane/report.xml
 
 .DS_Store
 Thumbs.db
 UserInterfaceState.xcuserstate
+.env*
+.bitrise.secrets.yml
+config.xml
+build.json
+package-lock.json
