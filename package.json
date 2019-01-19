@@ -68,6 +68,14 @@
     "ionic_webpack": "./config/webpack.config.js",
     "ionic_copy": "./config/copy.config.js"
   },
+  "lint-staged": {
+    "linters": {
+      "*.ts": [
+        "tslint",
+        "git add"
+      ]
+    }
+  },
   "cordova": {
     "plugins": {
       "cordova-plugin-whitelist": {},
