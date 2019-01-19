@@ -1,0 +1,36 @@
+{
+  "android": {
+    "release": {
+      "keystore": "${KEYSTORE_DESTINATION}",
+      "alias": "${KEYSTORE_ALIAS}",
+      "password": "${KEYSTORE_PASSWORD}",
+      "storePassword": "${KEYSTORE_STORE_PASSWORD}"
+    },
+    "debug": {
+      "keystore": "${KEYSTORE_DESTINATION}",
+      "alias": "${KEYSTORE_ALIAS}",
+      "password": "${KEYSTORE_PASSWORD}",
+      "storePassword": "${KEYSTORE_STORE_PASSWORD}"
+    }
+  },
+  "ios": {
+    "release": {
+      "codeSignIdentity": "iPhone Distribution",
+      "provisioningProfile": "${PROVISION_UUID}",
+      "developmentTeam": "${FASTLANE_TEAM_ID}",
+      "packageType": "${MATCH_TYPE}",
+      "buildFlag": [
+        "-UseModernBuildSystem=0"
+      ]
+    },
+    "debug": {
+      "codeSignIdentity": "iPhone Developer",
+      "provisioningProfile": "${PROVISION_UUID}",
+      "developmentTeam": "${FASTLANE_TEAM_ID}",
+      "packageType": "development",
+      "buildFlag": [
+        "-UseModernBuildSystem=0"
+      ]
+    }
+  }
+}
