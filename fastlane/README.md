@@ -48,6 +48,16 @@ fastlane ios release
 fastlane android build
 ```
 
+### android release_store
+```
+fastlane android release_store
+```
+
+### android release
+```
+fastlane android release
+```
+
 
 ----
 
