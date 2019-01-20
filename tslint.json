@@ -1,6 +1,11 @@
 {
-  "extends": "tslint-angular",
+  "extends": [
+    "tslint-angular",
+    "tslint-plugin-prettier",
+    "tslint-config-prettier"
+  ],
   "rules": {
+    "prettier": true,
     "component-class-suffix": [true, "Component", "Page"],
     "component-selector": [true, "element", ["page", "cmp", "app", "component"], "kebab-case"],
     "no-non-null-assertion": false,
