@@ -1,0 +1,344 @@
+---
+format_version: '5'
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+project_type: ionic
+app:
+  envs:
+  - MATCH_READONLY: false
+  - RUN_IONIC_BUILD_CI: true
+  - SLACK_CHANNEL: onlytech
+trigger_map:
+- push_branch: release/*
+  workflow: builds
+- push_branch: "develop"
+  workflow: dev-debug
+- push_branch: "*"
+  workflow: ci
+- pull_request_source_branch: "*"
+  workflow: ci
+- tag: v*.*.*-beta*
+  workflow: staging
+- tag: v*.*.*
+  workflow: prod
+workflows:
+  _prepare:
+    steps:
+    - activate-ssh-key@4.0.3:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@4.0.14: {}
+    - cache-pull: {}
+    - npm@1.0.1:
+        inputs:
+        - version: $NPM_VERSION
+        - command: install
+    - script:
+        run_if: .IsCI
+        inputs:
+        - content: |
+            #!/bin/bash
+            printf "$GIT_CLONE_COMMIT_MESSAGE_SUBJECT\n$GIT_CLONE_COMMIT_MESSAGE_BODY" | npm run commitlint
+  ci:
+    before_run:
+    - _prepare
+    steps:
+    - npm@1.0.1:
+        inputs:
+        - version: $NPM_VERSION
+        - command: 'run lint'
+    - npm@1.0.1:
+        run_if: '{{getenv "RUN_IONIC_BUILD_CI"}}'
+        inputs:
+        - version: $NPM_VERSION
+        - command: 'run build'
+  _fastlane:
+    steps:
+    - script:
+        run_if: |-
+          {{if getenv "$BITRISE_DEFAULT_PROVISION_URL" | ne ""}}
+          false
+          {{else}}
+          true
+          {{end}}
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+            fastlane sync_cert --verbose
+  _build:
+    before_run:
+    - ci
+    - _fastlane
+    steps:
+    - script:
+        inputs:
+        - content: |
+            #!/bin/bash
+            set -e
+            sudo gem install cocoapods fastlane
+            pod repo update
+            brew install gradle
+    - npm@1.0.1:
+        inputs:
+        - version: $NPM_VERSION
+        - command: 'run ionic:build --enableLint false --prod'
+    - script:
+        inputs:
+        - content: |
+            #!/bin/bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+            cmdAndroid="npx ionic cordova build android --no-build --$BUILD_TYPE"
+            cmdIos="npx ionic cordova build ios --device --no-build --$BUILD_TYPE"
+            npm run clean-cordova-platforms
+            $cmdAndroid && $cmdIos
+            cp ${BITRISE_SOURCE_DIR}/platforms/android/app/build/outputs/apk/$BUILD_TYPE/app-$BUILD_TYPE.apk ${BITRISE_DEPLOY_DIR}/app-$BUILD_TYPE.apk
+            cp ${BITRISE_SOURCE_DIR}/platforms/ios/build/device/*.ipa ${BITRISE_DEPLOY_DIR}/app-$BUILD_TYPE.ipa
+            envman add --key BITRISE_APK_PATH --value ${BITRISE_DEPLOY_DIR}/app-$BUILD_TYPE.apk
+            envman add --key BITRISE_IPA_PATH --value ${BITRISE_DEPLOY_DIR}/app-$BUILD_TYPE.ipa
+            # var fastlane deliver upload iOS
+            envman add --key DELIVER_IPA_PATH --value ${BITRISE_DEPLOY_DIR}/app-$BUILD_TYPE.ipa
+    - cache-push@2.0.5:
+        inputs:
+        - cache_paths: |-
+            ./node_modules
+            $HOME/.gradle
+            ./plugins/
+            $HOME/Library/Developer/Xcode/DerivedData
+        - ignore_check_on_paths: |-
+            $HOME/.gradle/caches/*.lock
+            $HOME/Library/Developer/Xcode/DerivedData
+  _deploy:
+    steps:
+    - deploy-to-bitrise-io@1.3.19:
+        inputs:
+        - is_enable_public_page: false
+    after_run:
+    - _hockeyapp-android
+    - _hockeyapp-ios
+  _deploy-dev:
+    steps:
+    - deploy-to-bitrise-io@1.3.19: {}
+    - script:
+        inputs:
+        - content: |
+            #!/bin/bash
+            urls=$BITRISE_PUBLIC_INSTALL_PAGE_URL_MAP
+            link1=${urls%|*}
+            link2=${urls#*|}
+            if [[ $link2 =~ ".apk" ]]; then
+              linkApk=${link2#*=>}
+              linkIpa=${link1#*=>}
+            else
+              linkApk=${link1#*=>}
+              linkIpa=${link2#*=>}
+            fi
+            envman add --key LINK_APK --value $linkApk
+            envman add --key LINK_IPA --value $linkIpa
+    after_run:
+    - _install-slack-android
+    - _install-slack-ios
+  _install-slack:
+    steps:
+    - create-install-page-qr-code@1.0.0: {}
+    - slack@3.1.2:
+        inputs:
+        - channel: "$SLACK_CHANNEL"
+        - api_token: $SLACK_API_TOKEN
+        - image_url: "$BITRISE_PUBLIC_INSTALL_PAGE_QR_CODE_IMAGE_URL"
+        - title_link: "$BITRISE_PUBLIC_INSTALL_PAGE_URL"
+        - fields: |
+            App|${BITRISE_APP_TITLE}
+            Platforma|${PLATFORM}
+            Branch|${BITRISE_GIT_BRANCH}
+            Workflow|${BITRISE_TRIGGERED_WORKFLOW_ID}
+        - buttons: |
+            View App|${BITRISE_APP_URL}
+            View Build|${BITRISE_BUILD_URL}
+            Install Page|${BITRISE_PUBLIC_INSTALL_PAGE_URL}
+  _hockeyapp-ios:
+    after_run:
+    - _install-slack-ios
+    steps:
+    - hockeyapp-deploy:
+        inputs:
+        - api_token: "$HOCKEYAPP_API_TOKEN"
+        - app_id: "$HOCKEYAPP_APP_ID_IOS"
+    - script:
+        inputs:
+        - title: "Set public url iOS"
+        - content: |
+            #!/bin/bash
+            envman add --key LINK_IPA --value $HOCKEYAPP_DEPLOY_PUBLIC_URL
+  _hockeyapp-android:
+    after_run:
+    - _install-slack-android
+    steps:
+    - hockeyapp-deploy-android:
+        inputs:
+        - api_token: "$HOCKEYAPP_API_TOKEN"
+        - app_id: "$HOCKEYAPP_APP_ID_ANDROID"
+    - script:
+        inputs:
+        - title: "Set public url Android"
+        - content: |
+            #!/bin/bash
+            envman add --key LINK_APK --value $HOCKEYAPP_DEPLOY_PUBLIC_URL
+  _install-slack-android:
+    envs:
+    - BITRISE_PUBLIC_INSTALL_PAGE_URL: $LINK_APK
+    - PLATFORM: Android
+    after_run:
+    - _install-slack
+  _install-slack-ios:
+    envs:
+    - BITRISE_PUBLIC_INSTALL_PAGE_URL: $LINK_IPA
+    - PLATFORM: iOS
+    after_run:
+    - _install-slack
+  _deploy-store:
+    steps:
+    - deploy-to-bitrise-io@1.3.19:
+        inputs:
+        - is_enable_public_page: false
+    after_run:
+    - _google-play
+    - _apple-store
+  _google-play:
+    steps:
+    - google-play-deploy@1.5.1:
+        run_if: '{{getenv "BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL" | ne ""}}'
+        inputs:
+        - package_name: "$APP_IDENTIFIER"
+        - track: internal
+        - service_account_json_key_path: "$BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL"
+  _apple-store:
+    steps:
+    - script:
+        inputs:
+        - title: "Upload Apple Store"
+        - content: |
+            #!/bin/bash
+            set -e
+            fastlane ios store
+  _set-env-vars-file:
+    steps:
+    - script:
+        inputs:
+        - title: "Set env vars file"
+        - content: |
+            #!/bin/bash
+
+            if [ -n "$ENV_FILE" ]; then
+              # specify local download path
+              file_local_path=$BITRISE_SOURCE_DIR/file_env
+
+              # download the file
+              wget -O "$file_local_path" "$ENV_FILE"
+              filename="$file_local_path"
+              # set vars define by env file in generic file storage
+              while IFS= read -r var
+              do
+                if [[ $var =~ "=" ]]; then
+                  key=${var%%=*}
+                  value=${var#*=}
+                  valueDefault=${!key}
+                  if [ -n "$value" ] && [ -z "$valueDefault" ]; then
+                    envman add --key $key --value $value
+                  fi
+                fi
+              done < "$filename"
+            fi
+  _set-env-vars-scope:
+    steps:
+    - script:
+        inputs:
+        - title: "Set env vars scope"
+        - content: |
+            #!/bin/bash
+
+            # set variables by scope
+            # ex: PRODUCTION_MATCH_TYPE, PRODUCTION_NG2_MY_SECRET
+            if [ -n "$ENV" ]; then
+              printenv | while read var;
+              do
+                if [[ $var =~ "=" ]]; then
+                  key=${var%%=*}
+                  value=${var#*=}
+                  length=${#ENV}
+                  prefix=${key:0:$length+1}
+                  if [ "$prefix" == "${ENV}_" ]; then
+                    key=${key:$length+1}
+                    envman add --key $key --value $value
+                  fi
+                fi
+              done
+            fi
+  _build-env:
+    envs:
+    - RUN_IONIC_BUILD_CI: false
+    before_run:
+    - _set-env-vars-file
+    - _set-env-vars-scope
+    after_run:
+    - _build
+  _debug:
+    envs:
+    - APP_VERSION: "${BITRISE_BUILD_NUMBER}-${BITRISE_TRIGGERED_WORKFLOW_ID}"
+    - BUILD_TYPE: debug
+    - MATCH_TYPE: development
+    after_run:
+    - _build-env
+    - _deploy-dev
+  dev-debug:
+    envs:
+    - ENV_FILE: $BITRISEIO_ENV_FILE_DEV_URL
+    after_run:
+    - _debug
+  dev:
+    envs:
+    - ENV_FILE: $BITRISEIO_ENV_FILE_DEV_URL
+    - ENV: DEV
+    - APP_VERSION: "${BITRISE_BUILD_NUMBER}-${BITRISE_TRIGGERED_WORKFLOW_ID}"
+    - BUILD_TYPE: release
+    - MATCH_TYPE: enterprise
+    after_run:
+    - _build-env
+    - _deploy
+  staging:
+    envs:
+    - ENV_FILE: $BITRISEIO_ENV_FILE_STAGING_URL
+    - ENV: STAGING
+    - APP_VERSION: "${BITRISE_BUILD_NUMBER}-${BITRISE_TRIGGERED_WORKFLOW_ID}"
+    - BUILD_TYPE: release
+    - MATCH_TYPE: enterprise
+    after_run:
+    - _build-env
+    - _deploy
+  prod:
+    envs:
+    - ENV_FILE: $BITRISEIO_ENV_FILE_PROD_URL
+    - ENV: PROD
+    - BUILD_TYPE: release
+    steps:
+    - script:
+        inputs:
+        - title: "Set APP version"
+        - content: |
+            #!/bin/bash
+            tagName=${BITRISE_GIT_TAG:1}
+            envman add --key APP_VERSION --value ${tagName}
+    after_run:
+    - _build-env
+    - _deploy-store
+  builds:
+    steps:
+    - trigger-bitrise-workflow@0.0.4:
+        inputs:
+        - workflow_id: dev
+        - api_token: "$API_TOKEN"
+    - trigger-bitrise-workflow@0.0.4:
+        inputs:
+        - workflow_id: staging
+        - api_token: "$API_TOKEN"
