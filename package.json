@@ -7,7 +7,6 @@
   "scripts": {
     "commitlint": "commitlint",
     "clean": "ionic-app-scripts clean",
-    "clean-all": "npm run clean-cordova && rimraf www/* node_modules/*",
     "clean-cordova-plugins": "rimraf plugins/*",
     "clean-cordova-platforms": "rimraf platforms/*",
     "clean-cordova": "npm-run-all clean-cordova-platforms clean-cordova-plugins",
