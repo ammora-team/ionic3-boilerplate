@@ -1,6 +1,9 @@
 {
+  "rulesDirectory": [
+    "node_modules/codelyzer"
+  ],
   "extends": [
-    "tslint-angular",
+    "angular-tslint-rules",
     "tslint-plugin-prettier",
     "tslint-config-prettier"
   ],
@@ -12,6 +15,6 @@
     "import-blacklist": [],
     "no-console": [true, "log", "info"],
     "no-debugger": true,
-    "no-consecutive-blank-lines": true
+    "i18n": false
   }
 }

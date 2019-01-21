@@ -56,6 +56,8 @@
     "@commitlint/config-conventional": "^6.0.0",
     "@commitlint/prompt": "^6.0.0",
     "@ionic/app-scripts": "~3.2.0",
+    "angular-tslint-rules": "1.12.1",
+    "codelyzer": ">=4.5.0",
     "cordova": "8.0.0",
     "dotenv": "6.1.0",
     "dotenv-expand": "~4.2.0",
@@ -64,7 +66,6 @@
     "npm-run-all": "^4.1.2",
     "prettier": "1.15.3",
     "rimraf": "^2.6.3",
-    "tslint-angular": "1.1.2",
     "tslint-config-prettier": "1.17.0",
     "tslint-plugin-prettier": "2.0.1",
     "typescript": "2.7.2"
