@@ -41,3 +41,6 @@ UserInterfaceState.xcuserstate
 config.xml
 build.json
 package-lock.json
+
+*.keystore
+*.jks

@@ -15,6 +15,11 @@ Install _fastlane_ using
 or alternatively using `brew cask install fastlane`
 
 # Available Actions
+### gpg_decrypt
+```
+fastlane gpg_decrypt
+```
+
 ### sync_cert
 ```
 fastlane sync_cert
