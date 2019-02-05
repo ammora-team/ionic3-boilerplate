@@ -20,15 +20,15 @@ or alternatively using `brew cask install fastlane`
 fastlane gpg_decrypt
 ```
 
-### sync_cert
-```
-fastlane sync_cert
-```
-
 
 ----
 
 ## iOS
+### ios certificates
+```
+fastlane ios certificates
+```
+
 ### ios build
 ```
 fastlane ios build
@@ -37,6 +37,11 @@ fastlane ios build
 ### ios release_store
 ```
 fastlane ios release_store
+```
+
+### ios hockeyapp
+```
+fastlane ios hockeyapp
 ```
 
 ### ios release
@@ -56,6 +61,11 @@ fastlane android build
 ### android release_store
 ```
 fastlane android release_store
+```
+
+### android hockeyapp
+```
+fastlane android hockeyapp
 ```
 
 ### android release
