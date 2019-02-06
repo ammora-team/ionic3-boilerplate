@@ -63,7 +63,7 @@ workflows:
         - content: |
             #!/bin/bash
             set -e
-            fastlane sync_cert --verbose
+            fastlane certificates --verbose
   _build:
     before_run:
     - ci
@@ -163,8 +163,8 @@ workflows:
     steps:
     - hockeyapp-deploy:
         inputs:
-        - api_token: "$HOCKEYAPP_API_TOKEN"
-        - app_id: "$HOCKEYAPP_APP_ID_IOS"
+        - api_token: "$FL_HOCKEY_API_TOKEN"
+        - app_id: "$FL_HOCKEY_APP_ID_IOS"
     - script:
         inputs:
         - title: "Set public url iOS"
@@ -177,8 +177,8 @@ workflows:
     steps:
     - hockeyapp-deploy-android:
         inputs:
-        - api_token: "$HOCKEYAPP_API_TOKEN"
-        - app_id: "$HOCKEYAPP_APP_ID_ANDROID"
+        - api_token: "$FL_HOCKEY_API_TOKEN"
+        - app_id: "$FL_HOCKEY_APP_ID_ANDROID"
     - script:
         inputs:
         - title: "Set public url Android"
