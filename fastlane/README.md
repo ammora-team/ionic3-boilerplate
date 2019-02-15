@@ -44,6 +44,16 @@ fastlane ios release_store
 fastlane ios hockeyapp
 ```
 
+### ios upload_testflight
+```
+fastlane ios upload_testflight
+```
+
+### ios beta
+```
+fastlane ios beta
+```
+
 ### ios release
 ```
 fastlane ios release
